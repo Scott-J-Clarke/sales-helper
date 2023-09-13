@@ -17,7 +17,7 @@ router.get('/:id', async (req, res) => {
   // Include its associated Category and Tag data (what does this mean?):
 })
 
-// Create new product
+// CREATE new product:
 router.post('/', (req, res) => {
   /* req.body should look like this...
     {
@@ -49,7 +49,7 @@ router.post('/', (req, res) => {
     });
 });
 
-// Update product (does anything need to be changed here?):
+// UPDATE product (does anything need to be changed here?):
 router.put('/:id', (req, res) => {
   // Update product data (does anything need to be changed here?):
   Product.update(req.body, {
