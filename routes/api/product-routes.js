@@ -3,35 +3,19 @@ const { Product, Category, Tag, ProductTag } = require('../../models');
 
 // Routes at the `/api/products` endpoint:
 
-// Get all products:
-router.get('/', (req, res) => {
-  Product.findAll().then((productData) => {
-    res.json(productData);
-  });
+// GET all products:
+router.get('/', async (req, res) => {
+  const productData = await Product.findAll();
+  return res.json(productData);
   // Include its associated Category and Tag data (what does this mean?):
 });
 
-// Get one product:
-router.get('/:id', (req, res) => {
-  Product.findByPk(req.params.id).then((productData) => {
-    res.json(productData);
-  });
+// GET one product by its 'id':
+router.get('/:id', async (req, res) => {
+  const productData = await Product.findByPk(req.params.id);
+  return res.json(productData);
   // Include its associated Category and Tag data (what does this mean?):
-});
-
-// // Will this GET request work better for one particular product 'id'?
-// // How is it different from the GET request directly above it?
-// router.get('/:id', (req, res) => {
-//   Product.findOne(
-//     {
-//       where: {
-//         id: req.params.id
-//       },
-//     }
-//   ).then((productData) => {
-//     res.json(productData);
-//   });
-// });
+})
 
 // Create new product
 router.post('/', (req, res) => {
@@ -110,17 +94,61 @@ router.put('/:id', (req, res) => {
     });
 });
 
-// Delete one product by its `id` value:
-router.delete('/:id', (req, res) => {
-  Product.destroy({
-    where: {
-      id: req.params.id,
-    }
-  })
-  .then((deletedProduct) => {
-    res.json(deletedProduct);
-  })
-  .catch((err) => res.json(err));
+// DELETE a product by its `id` value:
+router.delete('/:id', async (req, res) => {
+  const productData = await Product.destroy(
+    {
+      where: {
+        id: req.params.id,
+      },
+    });
+    return res.json(productData);
 });
 
 module.exports = router;
+
+
+// // GET all products using '.then()' syntax:
+// router.get('/', (req, res) => {
+//   Product.findAll().then((productData) => {
+//     res.json(productData);
+//   });
+//   // Include its associated Category and Tag data (what does this mean?):
+// });
+
+
+// // Get one product by its 'id' using '.then()' syntax:
+// router.get('/:id', (req, res) => {
+//   Product.findByPk(req.params.id).then((productData) => {
+//     res.json(productData);
+//   });
+//   // Include its associated Category and Tag data (what does this mean?):
+// });
+
+// // Will this GET request work better for one particular product 'id'?
+// // How is it different from the GET request directly above it?
+// router.get('/:id', (req, res) => {
+//   Product.findOne(
+//     {
+//       where: {
+//         id: req.params.id
+//       },
+//     }
+//   ).then((productData) => {
+//     res.json(productData);
+//   });
+// });
+
+
+// // DELETE a product by its `id` value using '.then()' syntax:
+// router.delete('/:id', (req, res) => {
+//   Product.destroy({
+//     where: {
+//       id: req.params.id,
+//     }
+//   })
+//   .then((deletedProduct) => {
+//     res.json(deletedProduct);
+//   })
+//   .catch((err) => res.json(err));
+// });
