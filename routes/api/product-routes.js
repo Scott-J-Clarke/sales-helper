@@ -1,25 +1,39 @@
 const router = require('express').Router();
 const { Product, Category, Tag, ProductTag } = require('../../models');
-
 // Routes at the `/api/products` endpoint:
 
 // GET all products:
 router.get('/', async (req, res) => {
-  const productData = await Product.findAll();
-  return res.json(productData);
-  // Include its associated Category and Tag data (what does this mean?):
+  try {
+    const productData = await Product.findAll({
+      include: [{ model: Category }, { model: Tag }]
+    });
+    res.json(productData);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 // GET one product by its 'id':
 router.get('/:id', async (req, res) => {
-  const productData = await Product.findByPk(req.params.id);
-  return res.json(productData);
-  // Include its associated Category and Tag data (what does this mean?):
-})
+  try {
+    const productData = await Product.findOne({
+      where: {
+        id: req.params.id
+      },
+      include: [{ model: Category }, { model: Tag }]
+    });
+    res.json(productData);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 // CREATE new product:
 router.post('/', (req, res) => {
-  /* req.body should look like this...
+  /* req.body should look like this:
     {
       product_name: "Basketball",
       price: 200.00,
@@ -29,7 +43,7 @@ router.post('/', (req, res) => {
   */
   Product.create(req.body)
     .then((product) => {
-      // If there's product tags, create pairings to bulk create in the ProductTag model (what does this mean?):
+      // If there's product tags, create pairings to bulk create in the ProductTag model:
       if (req.body.tagIds.length) {
         const productTagIdArr = req.body.tagIds.map((tag_id) => {
           return {
@@ -39,7 +53,7 @@ router.post('/', (req, res) => {
         });
         return ProductTag.bulkCreate(productTagIdArr);
       }
-      // If no product tags, just respond (what does this mean?):
+      // If no product tags, just respond:
       res.status(200).json(product);
     })
     .then((productTagIds) => res.status(200).json(productTagIds))
@@ -49,9 +63,9 @@ router.post('/', (req, res) => {
     });
 });
 
-// UPDATE product (does anything need to be changed here?):
+// UPDATE product:
 router.put('/:id', (req, res) => {
-  // Update product data (does anything need to be changed here?):
+  // Update product data:
   Product.update(req.body, {
     where: {
       id: req.params.id,
@@ -63,7 +77,7 @@ router.put('/:id', (req, res) => {
         ProductTag.findAll({
           where: { product_id: req.params.id }
         }).then((productTags) => {
-          // Create filtered list of new tag_ids (does anything need to be changed here?):
+          // Create filtered list of new tag_ids:
           const productTagIds = productTags.map(({ tag_id }) => tag_id);
           const newProductTags = req.body.tagIds
           .filter((tag_id) => !productTagIds.includes(tag_id))
@@ -74,11 +88,11 @@ router.put('/:id', (req, res) => {
             };
           });
 
-            // Figure out which ones to remove (what does this mean?):
+            // Figure out which ones to remove:
           const productTagsToRemove = productTags
           .filter(({ tag_id }) => !req.body.tagIds.includes(tag_id))
           .map(({ id }) => id);
-                  // Run both actions (what does this mean?):
+                  // Run both actions:
           return Promise.all([
             ProductTag.destroy({ where: { id: productTagsToRemove } }),
             ProductTag.bulkCreate(newProductTags),
@@ -89,66 +103,36 @@ router.put('/:id', (req, res) => {
       return res.json(product);
     })
     .catch((err) => {
-      // console.log(err); (does anything need to be changed here?):
+      // console.log(err);
       res.status(400).json(err);
     });
 });
 
 // DELETE a product by its `id` value:
 router.delete('/:id', async (req, res) => {
-  const productData = await Product.destroy(
-    {
-      where: {
-        id: req.params.id,
-      },
-    });
-    return res.json(productData);
+  try {
+    const productData = await Product.destroy(
+      {
+        where: {
+          id: req.params.id
+        },
+      }
+    );
+    res.json(productData);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
-module.exports = router;
-
-
-// // GET all products using '.then()' syntax:
-// router.get('/', (req, res) => {
-//   Product.findAll().then((productData) => {
-//     res.json(productData);
-//   });
-//   // Include its associated Category and Tag data (what does this mean?):
-// });
-
-
-// // Get one product by its 'id' using '.then()' syntax:
-// router.get('/:id', (req, res) => {
-//   Product.findByPk(req.params.id).then((productData) => {
-//     res.json(productData);
-//   });
-//   // Include its associated Category and Tag data (what does this mean?):
-// });
-
-// // Will this GET request work better for one particular product 'id'?
-// // How is it different from the GET request directly above it?
-// router.get('/:id', (req, res) => {
-//   Product.findOne(
+// router.delete('/:id', async (req, res) => {
+//   const productData = await Product.destroy(
 //     {
 //       where: {
-//         id: req.params.id
+//         id: req.params.id,
 //       },
-//     }
-//   ).then((productData) => {
-//     res.json(productData);
-//   });
+//     });
+//     return res.json(productData);
 // });
 
-
-// // DELETE a product by its `id` value using '.then()' syntax:
-// router.delete('/:id', (req, res) => {
-//   Product.destroy({
-//     where: {
-//       id: req.params.id,
-//     }
-//   })
-//   .then((deletedProduct) => {
-//     res.json(deletedProduct);
-//   })
-//   .catch((err) => res.json(err));
-// });
+module.exports = router;
